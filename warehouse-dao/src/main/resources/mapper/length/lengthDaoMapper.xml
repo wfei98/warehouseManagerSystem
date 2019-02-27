@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wljy.dao.length.LengthDao">
+
+    <insert id="addLength" parameterType="Length" useGeneratedKeys="true" keyProperty="lengthId">
+        insert into length_info(pk_l_id,length_name) values (null,#{lengthName});
+    </insert>
+
+    <select id="getLengthList" resultMap="lengthMap">
+        select pk_l_id, length_name from length_info
+    </select>
+
+    <delete id="delLength" parameterType="java.lang.Integer">
+        delete from length_info where pk_l_id = #{lengthId}
+    </delete>
+
+    <update id="updateLength" parameterType="Length">
+        update length_info set length_name = #{lengthName} where pk_l_id = #{lengthId}
+    </update>
+
+    <select id="getPageLengthList" resultMap="lengthMap">
+        select pk_l_id,length_name from length_info
+    </select>
+
+    <resultMap id="lengthMap" type="Length">
+        <id property="lengthId" column="pk_l_id"/>
+        <result property="lengthName" column="length_name" />
+    </resultMap>
+
+</mapper>

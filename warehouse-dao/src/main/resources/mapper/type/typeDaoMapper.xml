@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wljy.dao.type.TypeDao">
+
+    <insert id="addType" parameterType="Type" keyProperty="typeId" useGeneratedKeys="true">
+        insert into type_info(pk_t_id,type_name) values (null,#{typeName});
+    </insert>
+
+    <select id="getTypeList" resultMap="typeMap">
+        SELECT pk_t_id, type_name FROM type_info
+    </select>
+
+    <select id="getPageList" resultMap="typeMap">
+        SELECT pk_t_id, type_name FROM type_info
+    </select>
+
+    <update id="updateTypeById" parameterType="Type">
+        update type_info set type_name = #{typeName} where pk_t_id = #{typeId}
+    </update>
+
+    <resultMap id="typeMap" type="Type">
+        <id column="pk_t_id" property="typeId"/>
+        <result column="type_name" property="typeName"/>
+    </resultMap>
+
+</mapper>

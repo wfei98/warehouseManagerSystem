@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mybatis="http://mybatis.org/schema/mybatis-spring"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd
+       http://mybatis.org/schema/mybatis-spring
+       http://mybatis.org/schema/mybatis-spring.xsd
+       http://www.springframework.org/schema/tx
+       http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+
+    <context:component-scan base-package="com.wljy">
+        <context:exclude-filter type="annotation"
+                                expression="org.springframework.stereotype.Controller" />
+    </context:component-scan>
+
+
+    <!-- 配置数据源连接池 -->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+        <!-- 数据库连接属性 -->
+        <property name="url" value="jdbc:mysql://116.62.241.246:3306/warehouse?useUnicode=true&amp;characterEncoding=utf-8&amp;allowMultiQueries=true"/>
+        <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+        <property name="username" value="admin"/>
+        <property name="password" value="admin6789"/>
+        <!-- 启用系统监控过滤器 -->
+        <property name="filters" value="stat"/>
+        <!-- 最大连接池数量 -->
+        <property name="maxActive" value="200"/>
+        <!-- 初始化时建立物理连接的个数-->
+        <property name="initialSize" value="5"/>
+        <!-- 最小连接池数量-->
+        <property name="minIdle" value="5"/>
+        <!-- 获取连接时最大等待时间，单位毫秒-->
+        <property name="maxWait" value="60000"/>
+        <!-- 销毁线程会检测连接的间隔时间，（单位毫秒）
+        如果连接空闲时间大于等于minEvictableIdleTimeMillis则关闭物理连接-->
+        <property name="timeBetweenEvictionRunsMillis" value="60000"/>
+        <!-- 连接保持空闲而不被驱逐的最小时间 -->
+        <property name="minEvictableIdleTimeMillis" value="300000"/>
+        <!--申请连接的时候检测，如果空闲时间大于timeBetweenEvictionRunsMillis，
+        执行validationQuery检测连接是否有效-->
+        <property name="testWhileIdle" value="true"/>
+        <!-- 申请连接时执行validationQuery检测连接是否有效 -->
+        <property name="testOnBorrow" value="false"/>
+        <!-- 归还连接时执行validationQuery检测连接是否有效-->
+        <property name="testOnReturn" value="false"/>
+        <!-- 是否缓存preparedStatement, mysql建议关闭-->
+        <property name="poolPreparedStatements" value="false"/>
+        <!-- 伪SQL，用于检查连接是否可用 -->
+        <property name="validationQuery" value="select 1"/>
+    </bean>
+
+    <!-- 配置SqlSessionFactory,将mybatis的SqlSessionFactory交给Spring容器管理 -->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!-- 注入druid数据源 -->
+        <property name="dataSource" ref="dataSource"/>
+        <!-- 给实体包下的类定义默认别名-->
+        <property name="typeAliasesPackage" value="com.wljy.entity"/>
+        <!-- 指定mapper映射配置文件的目录-->
+        <property name="mapperLocations" value="classpath:mapper/*/*.xml"/>
+        <!-- 配置分页插件-->
+        <property name="plugins">
+            <!-- 配置一个bean，指定分页插件的拦截器-->
+            <bean class="com.github.pagehelper.PageInterceptor">
+                <property name="properties">
+                    <!--配置拦截器的参数属性 -->
+                    <props>
+                        <!-- 指定数据库方言 -->
+                        <prop key="helperDialect">mysql</prop>
+                        <!-- 分页参数使用注解支持-->
+                        <prop key="supportMethodsArguments">true</prop>
+                    </props>
+                </property>
+            </bean>
+        </property>
+    </bean>
+
+    <!-- 指定扫描的dao接口的包,利用动态代理在运行时生成dao的实现类 -->
+    <mybatis:scan base-package="com.wljy.dao"/>
+
+    <!--&lt;!&ndash; 装配DataSource的事务管理器&ndash;&gt;-->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <!-- 需要注入一个DataSource -->
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <!-- 启用事务注解驱动,transaction-manager引用上面定义的事务管理器的id，
+   如果id的名称就叫做transactionManager，那么就不需要指定这个属性，因为是默认值-->
+    <tx:annotation-driven transaction-manager="transactionManager" />
+
+    <!--&lt;!&ndash; 配置通知,并指定上面配置的事务管理器 &ndash;&gt;-->
+    <!--<tx:advice id="txAdvice" transaction-manager="transactionManager">-->
+        <!--&lt;!&ndash; 配置事务的传播属性 &ndash;&gt;-->
+        <!--<tx:attributes>-->
+            <!--&lt;!&ndash;-->
+            <!--name指定要参与事务的方法，可以使用*号通配-->
+            <!--propagation指定事务的传播级别-->
+            <!--read-only设置当前事务设置为只读,-->
+            <!--rollback-for属性设置当遇到什么异常就执行回滚，-->
+            <!--默认是只要遇到任何的运行时异常就进行回滚，也可以指定为其他的检查时异常-->
+            <!--&ndash;&gt;-->
+            <!--&lt;!&ndash;<tx:method name="get*" propagation="SUPPORTS" read-only="true"/>-->
+            <!--<tx:method name="list*" propagation="SUPPORTS" read-only="true"/>-->
+            <!--<tx:method name="add*" propagation="REQUIRED"/>-->
+            <!--<tx:method name="update*" propagation="REQUIRED"/>-->
+            <!--<tx:method name="delete*" propagation="REQUIRED"/>-->
+            <!--<tx:method name="remove*" propagation="REQUIRED"/>&ndash;&gt;-->
+
+            <!--<tx:method name="*" propagation="REQUIRED"/>-->
+        <!--</tx:attributes>-->
+    <!--</tx:advice>-->
+
+    <!--&lt;!&ndash; 配置AOP &ndash;&gt;-->
+    <!--<aop:config>-->
+        <!--&lt;!&ndash; 配置事务切面（这里表示为一个事务通知器）-->
+        <!--advice-ref引用上面的通知,pointcut指定一个切入点表达式-->
+        <!--这个表达式用于描述哪些类上的哪些方法需要参与事务管理&ndash;&gt;-->
+        <!--<aop:advisor advice-ref="txAdvice" pointcut="execution(* com.blbl.service.*.*(..))"/>-->
+    <!--</aop:config>-->
+
+    <!--<import resource="redisconfig.xml"/>-->
+
+</beans>

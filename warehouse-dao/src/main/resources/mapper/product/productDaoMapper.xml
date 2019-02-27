@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wljy.dao.product.ProductDao">
+
+    <insert id="addProduct" parameterType="Product">
+          insert into product_info (product_name, product_length, product_number, product_type) values ();
+    </insert>
+
+    <select id="getPageProductList" resultMap="productMap">
+        select pk_p_id, product_name,product_number, product_type from product_info
+    </select>
+
+    <delete id="delProductById" parameterType="java.lang.Integer">
+          delete from product_info where pk_p_id = #{productId}
+    </delete>
+
+    <!--修改产品信息-->
+    <update id="updateProductById" parameterType="Product" >
+        update product_info
+        <set>
+            <if test="productName != null or productName != ''">
+                product_name = #{productName},
+            </if>
+
+            <if test="productNumber != null or productNumber != ''">
+                product_number = #{productNumber},
+            </if>
+
+            <if test="productType != null or productType != ''">
+                product_type = #{productType},
+            </if>
+        </set>
+        where pk_p_id = #{productId}
+    </update>
+
+    <!--修改产品数量-->
+    <update id="updateProductNumberById" parameterType="Product">
+        update product_info set product_number = #{productNumber} where pk_p_id = #{productId}
+    </update>
+
+    <resultMap id="productMap" type="Product">
+        <id column="pk_p_id" property="productId"/>
+        <result column="product_name" property="productName"/>
+        <result column="product_number" property="productNumber"/>
+        <association property="length" resultMap="lengthMap" />
+        <association property="type" resultMap="typeMap" />
+    </resultMap>
+
+    <resultMap id="typeMap" type="Type">
+        <id property="typeId" column="pk_t_id"/>
+        <result property="typeName" column="type_name" />
+    </resultMap>
+
+    <resultMap id="lengthMap" type="Length">
+        <id property="lengthId" column="pk_l_id"/>
+        <result property="lengthName" column="length_name" />
+    </resultMap>
+
+
+
+</mapper>
